@@ -1,0 +1,3281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workflow Dashboard — Recommended Design | KaraX.ai</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        :root {
+            --ice-bg: #F0F4F8;
+            --ice-subtle: #E2EBF3;
+            --sidebar-bg: #F7F9FC;
+            --sidebar-border: #E2E8F0;
+            --sidebar-active-bg: #E0EEFF;
+            --sidebar-active-text: #1A6FB5;
+            --sidebar-text: #4A5568;
+            --topbar-bg: #FAFBFD;
+            --topbar-border: #E2E8F0;
+            --card-bg: #fff;
+            --card-border: #E2E8F0;
+            --text-primary: #1A2332;
+            --text-secondary: #556575;
+            --text-muted: #8899AA;
+            --accent: #2D8FB3;
+            --accent-hover: #247A9A;
+            --accent-light: #E6F4FB;
+            --accent-ultra-light: #F0F8FD;
+            --success: #10B981;
+            --success-light: #ECFDF5;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --shadow-xs: 0 1px 2px rgba(0, 0, 0, .04);
+            --shadow: 0 1px 3px rgba(0, 0, 0, .06), 0 1px 2px rgba(0, 0, 0, .04);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, .04), 0 2px 4px rgba(0, 0, 0, .06);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, .06), 0 4px 10px rgba(0, 0, 0, .04);
+            --shadow-accent: 0 4px 14px rgba(45, 143, 179, .15);
+            --radius: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 18px;
+            --transition-fast: .15s cubic-bezier(.4, 0, .2, 1);
+            --transition: .25s cubic-bezier(.4, 0, .2, 1)
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--ice-bg);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+            letter-spacing: -.01em
+        }
+
+        .app {
+            display: flex;
+            height: 100vh;
+            overflow: hidden
+        }
+
+        /* SCENARIO SWITCHER */
+        .scenario-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            padding: 8px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, .2)
+        }
+
+        .scenario-bar .label {
+            color: #94a3b8;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px
+        }
+
+        .scenario-btn {
+            padding: 7px 18px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: .2s;
+            border: 1.5px solid transparent;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .scenario-btn.s1 {
+            background: rgba(45, 143, 179, .1);
+            color: #67d4f0;
+            border-color: rgba(45, 143, 179, .3)
+        }
+
+        .scenario-btn.s2 {
+            background: rgba(16, 185, 129, .1);
+            color: #6ee7b7;
+            border-color: rgba(16, 185, 129, .3)
+        }
+
+        .scenario-btn.s3 {
+            background: rgba(251, 146, 60, .1);
+            color: #fdba74;
+            border-color: rgba(251, 146, 60, .3)
+        }
+
+        .scenario-btn.active {
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, .15)
+        }
+
+        .scenario-btn.s1.active {
+            background: #2D8FB3;
+            color: #fff
+        }
+
+        .scenario-btn.s2.active {
+            background: #10B981;
+            color: #fff
+        }
+
+        .scenario-btn.s3.active {
+            background: #F59E0B;
+            color: #1e293b
+        }
+
+        .scenario-desc {
+            color: #cbd5e1;
+            font-size: 11.5px;
+            margin-left: auto;
+            max-width: 500px;
+            text-align: right;
+            line-height: 1.4
+        }
+
+        .main-wrapper {
+            margin-top: 44px;
+            height: calc(100vh - 44px)
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--sidebar-border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow-y: auto;
+            backdrop-filter: blur(8px)
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 3px
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #c5d0db;
+            border-radius: 3px
+        }
+
+        .sidebar-header {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .logo svg {
+            width: 28px;
+            height: 28px
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-primary)
+        }
+
+        .logo-text span {
+            color: var(--accent)
+        }
+
+        .logo-sub {
+            font-size: 9px;
+            color: var(--text-muted);
+            letter-spacing: .5px;
+            margin-top: -2px
+        }
+
+        .sidebar-collapse {
+            width: 28px;
+            height: 28px;
+            border: 1px solid var(--sidebar-border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+            color: var(--text-muted);
+            font-size: 14px;
+            transition: .15s
+        }
+
+        .sidebar-collapse:hover {
+            color: var(--accent)
+        }
+
+        .sidebar-search {
+            margin: 0 16px 12px;
+            position: relative
+        }
+
+        .sidebar-search input {
+            width: 100%;
+            padding: 8px 12px 8px 34px;
+            border: 1px solid var(--sidebar-border);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            background: var(--card-bg);
+            color: var(--text-primary);
+            outline: none;
+            transition: .2s
+        }
+
+        .sidebar-search input:focus {
+            border-color: var(--accent);
+            background: #fff
+        }
+
+        .sidebar-search .si {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 13px
+        }
+
+        .sidebar-search .shortcut {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 10px;
+            color: var(--text-muted);
+            background: #EEF1F5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500
+        }
+
+        .sidebar-nav {
+            padding: 0 12px
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            border-radius: 8px;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--sidebar-text);
+            cursor: pointer;
+            transition: .15s;
+            margin-bottom: 2px;
+            text-decoration: none
+        }
+
+        .nav-item:hover {
+            background: rgba(45, 143, 179, .06)
+        }
+
+        .nav-item.active {
+            background: var(--sidebar-active-bg);
+            color: var(--sidebar-active-text);
+            font-weight: 600
+        }
+
+        .nav-item svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0
+        }
+
+        .sidebar-section {
+            padding: 16px 16px 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between
+        }
+
+        .sidebar-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            color: var(--text-muted)
+        }
+
+        .chat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 12px;
+            margin: 0 12px;
+            border-radius: 6px;
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: .15s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .chat-item:hover {
+            background: rgba(45, 143, 179, .05)
+        }
+
+        .see-more {
+            color: var(--accent);
+            font-weight: 500;
+            font-size: 12px;
+            padding: 8px 20px;
+            cursor: pointer
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 12px 16px;
+            border-top: 1px solid var(--sidebar-border);
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), #1B6A8A);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 600
+        }
+
+        .user-email {
+            font-size: 11px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        /* MAIN */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            height: 56px;
+            background: var(--topbar-bg);
+            border-bottom: 1px solid var(--topbar-border);
+            flex-shrink: 0;
+            backdrop-filter: blur(8px)
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 4px
+        }
+
+        .tab {
+            padding: 8px 16px;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: .15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none
+        }
+
+        .tab:hover {
+            background: rgba(45, 143, 179, .06);
+            color: var(--text-primary)
+        }
+
+        .tab.active {
+            background: var(--accent-light);
+            color: var(--accent);
+            font-weight: 600
+        }
+
+        .tab svg {
+            width: 16px;
+            height: 16px
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px
+        }
+
+        .search-bar {
+            position: relative
+        }
+
+        .search-bar input {
+            width: 220px;
+            padding: 7px 12px 7px 32px;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            background: var(--card-bg);
+            outline: none;
+            transition: .2s
+        }
+
+        .search-bar input:focus {
+            border-color: var(--accent);
+            width: 280px;
+            box-shadow: 0 0 0 3px rgba(45, 143, 179, .1)
+        }
+
+        .search-bar svg {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 14px;
+            height: 14px;
+            color: var(--text-muted)
+        }
+
+        .btn-create {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 20px;
+            background: linear-gradient(135deg, #2D8FB3, #2480A0);
+            color: #fff;
+            border: none;
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow-accent), inset 0 1px 0 rgba(255, 255, 255, .15)
+        }
+
+        .btn-create:hover {
+            background: linear-gradient(135deg, #2480A0, #1B6A8A);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(45, 143, 179, .25)
+        }
+
+        .btn-create:active {
+            transform: translateY(0);
+            box-shadow: var(--shadow)
+        }
+
+        .btn-create svg {
+            width: 14px;
+            height: 14px
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0
+        }
+
+        .content::-webkit-scrollbar {
+            width: 5px
+        }
+
+        .content::-webkit-scrollbar-thumb {
+            background: #c5d0db;
+            border-radius: 5px
+        }
+
+        /* TAB VIEWS */
+        .tv {
+            display: none
+        }
+
+        .tv.active {
+            display: block
+        }
+
+        /* WELCOME BANNER */
+        .wb {
+            margin: 20px 24px;
+            padding: 16px 22px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: var(--shadow-xs)
+        }
+
+        .wb.new-user {
+            background: linear-gradient(135deg, #E8F4FB, #D4EAFA);
+            border: 1px solid rgba(45, 143, 179, .18)
+        }
+
+        .wb.ret-user {
+            background: linear-gradient(135deg, #ECFDF5, #D1FAE5);
+            border: 1px solid #A7F3D0
+        }
+
+        .wb.power-user {
+            background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+            border: 1px solid #FDE68A
+        }
+
+        .wb .icon {
+            font-size: 26px;
+            flex-shrink: 0;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .08))
+        }
+
+        .wb .txt {
+            flex: 1
+        }
+
+        .wb .txt strong {
+            font-size: 14.5px;
+            display: block;
+            margin-bottom: 3px;
+            letter-spacing: -.02em
+        }
+
+        .wb .txt span {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            line-height: 1.5
+        }
+
+        .wb .dismiss {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px;
+            transition: var(--transition-fast);
+            border-radius: 4px
+        }
+
+        .wb .dismiss:hover {
+            color: var(--text-primary);
+            background: rgba(0, 0, 0, .05)
+        }
+
+        /* STATS */
+        .stats {
+            display: flex;
+            gap: 14px;
+            margin: 0 24px 20px
+        }
+
+        .stat {
+            flex: 1;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 16px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow-xs);
+            transition: var(--transition)
+        }
+
+        .stat:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px)
+        }
+
+        .stat .si {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0
+        }
+
+        .stat .si.b {
+            background: linear-gradient(135deg, #E6F4FB, #D0EAFA)
+        }
+
+        .stat .si.g {
+            background: linear-gradient(135deg, #ECFDF5, #D1FAE5)
+        }
+
+        .stat .si.o {
+            background: linear-gradient(135deg, #FFFBEB, #FEF3C7)
+        }
+
+        .stat .num {
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -.02em;
+            color: var(--text-primary)
+        }
+
+        .stat .lbl {
+            font-size: 11.5px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            letter-spacing: .01em
+        }
+
+        /* WORKFLOW CARDS */
+        .mw {
+            padding: 0 24px 24px
+        }
+
+        .mw h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -.02em
+        }
+
+        .wg {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px
+        }
+
+        .wc {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            box-shadow: var(--shadow-xs)
+        }
+
+        .wc:hover {
+            border-color: rgba(45, 143, 179, .35);
+            box-shadow: var(--shadow-md), 0 0 0 1px rgba(45, 143, 179, .08);
+            transform: translateY(-3px)
+        }
+
+        .wc:hover .dm {
+            opacity: 1
+        }
+
+        .wc h4 {
+            font-size: 14.5px;
+            font-weight: 600;
+            margin-bottom: 14px;
+            padding-right: 24px;
+            line-height: 1.35;
+            letter-spacing: -.015em
+        }
+
+        .wc-b {
+            display: flex;
+            align-items: center;
+            justify-content: space-between
+        }
+
+        .wc-i {
+            display: flex;
+            gap: 6px
+        }
+
+        .ti {
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            border: 1px solid var(--card-border);
+            background: #fff;
+            transition: var(--transition-fast)
+        }
+
+        .ti.w {
+            background: linear-gradient(135deg, #2D8FB3, #1B6A8A);
+            color: #fff;
+            border: none;
+            font-weight: 800;
+            box-shadow: 0 2px 6px rgba(45, 143, 179, .25)
+        }
+
+        .ti.gm {
+            background: #fef2f2;
+            color: #ea4335;
+            border-color: #fecaca;
+            font-size: 14px
+        }
+
+        .ti.li {
+            background: #eff6ff;
+            color: #0077b5;
+            border-color: #bfdbfe;
+            font-size: 10px;
+            font-weight: 800
+        }
+
+        .ti.sh {
+            background: #f0fdf4;
+            color: #34a853;
+            border-color: #bbf7d0
+        }
+
+        .ti.sf {
+            background: #e0f2fe;
+            color: #00a1e0;
+            border-color: #bae6fd
+        }
+
+        .wc-a {
+            display: flex;
+            gap: 7px
+        }
+
+        .bt-s {
+            padding: 6px 14px;
+            background: #fff;
+            color: var(--text-secondary);
+            border: 1px solid var(--card-border);
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            box-shadow: var(--shadow-xs)
+        }
+
+        .bt-s:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-ultra-light);
+            box-shadow: var(--shadow)
+        }
+
+        .bt-p {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 14px;
+            background: var(--accent-light);
+            color: var(--accent);
+            border: 1px solid rgba(45, 143, 179, .18);
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: var(--transition-fast)
+        }
+
+        .bt-p:hover {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+            box-shadow: var(--shadow-accent)
+        }
+
+        .dm {
+            position: absolute;
+            top: 16px;
+            right: 14px;
+            width: 26px;
+            height: 26px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: var(--transition-fast);
+            color: var(--text-muted);
+            font-size: 16px;
+            letter-spacing: 2px
+        }
+
+        .dm:hover {
+            background: var(--ice-subtle);
+            color: var(--text-primary)
+        }
+
+        /* HERO */
+        .hero {
+            background: linear-gradient(135deg, #E4EFF8, #D8E8F4, #CCE0EF);
+            padding: 32px;
+            margin: 20px 24px;
+            border-radius: var(--radius-xl);
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(45, 143, 179, .08);
+            box-shadow: var(--shadow)
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, .3), transparent 60%);
+            pointer-events: none
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: -30%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(45, 143, 179, .1), transparent);
+            border-radius: 50%
+        }
+
+        .hero-c {
+            flex: 1;
+            z-index: 1
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 14px;
+            background: rgba(45, 143, 179, .1);
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 12px;
+            border: 1px solid rgba(45, 143, 179, .12)
+        }
+
+        .hero h2 {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            letter-spacing: -.03em;
+            line-height: 1.2
+        }
+
+        .hero h2 em {
+            color: var(--accent);
+            font-style: normal
+        }
+
+        .hero p {
+            font-size: 13.5px;
+            color: var(--text-secondary);
+            line-height: 1.65;
+            margin-bottom: 16px;
+            max-width: 470px
+        }
+
+        .hero-pills {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px
+        }
+
+        .hp {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 12px;
+            background: rgba(255, 255, 255, .75);
+            border-radius: 20px;
+            font-size: 11.5px;
+            font-weight: 500;
+            color: var(--accent);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, .5)
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 10px
+        }
+
+        .bt-w {
+            padding: 9px 18px;
+            background: linear-gradient(135deg, #2D8FB3, #2480A0);
+            color: #fff;
+            border: none;
+            border-radius: 9px;
+            font-size: 12.5px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: var(--shadow-accent)
+        }
+
+        .bt-w:hover {
+            background: linear-gradient(135deg, #2480A0, #1B6A8A);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(45, 143, 179, .25)
+        }
+
+        .bt-b {
+            padding: 9px 18px;
+            background: rgba(255, 255, 255, .85);
+            color: var(--accent);
+            border: 1px solid rgba(45, 143, 179, .25);
+            border-radius: 9px;
+            font-size: 12.5px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: var(--transition);
+            backdrop-filter: blur(4px)
+        }
+
+        .bt-b:hover {
+            background: #fff;
+            border-color: var(--accent);
+            box-shadow: var(--shadow)
+        }
+
+        .hero-v {
+            width: 180px;
+            height: 140px;
+            flex-shrink: 0;
+            z-index: 1;
+            border-radius: 14px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #C5DBEE, #A8CBE0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 44px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(255, 255, 255, .3)
+        }
+
+        /* FILTERS */
+        .filters {
+            padding: 0 20px;
+            margin-bottom: 14px;
+            display: flex;
+            gap: 7px;
+            flex-wrap: wrap;
+            align-items: center
+        }
+
+        .fl {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-right: 4px
+        }
+
+        .fc {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11.5px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            background: #fff;
+            border: 1px solid var(--card-border);
+            cursor: pointer;
+            transition: .2s;
+            font-family: inherit
+        }
+
+        .fc:hover {
+            border-color: var(--accent);
+            color: var(--accent)
+        }
+
+        .fc.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent)
+        }
+
+        .fc-count {
+            font-size: 10px;
+            opacity: .65;
+            font-weight: 400
+        }
+
+        .fc.active .fc-count {
+            opacity: .8
+        }
+
+        /* SECTIONS */
+        .sec {
+            padding: 0 20px;
+            margin-bottom: 20px
+        }
+
+        .sec h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 3px
+        }
+
+        .sec .sub {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            margin-bottom: 12px
+        }
+
+        .g3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px
+        }
+
+        /* DISCOVER CARDS */
+        .dc {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 18px;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            box-shadow: var(--shadow-xs)
+        }
+
+        .dc:hover {
+            border-color: rgba(45, 143, 179, .3);
+            box-shadow: var(--shadow-md), 0 0 0 1px rgba(45, 143, 179, .06);
+            transform: translateY(-3px)
+        }
+
+        .dc:hover .dm {
+            opacity: 1
+        }
+
+        .dc-i {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px
+        }
+
+        .dc h4 {
+            font-size: 13.5px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            line-height: 1.35;
+            padding-right: 22px;
+            letter-spacing: -.01em
+        }
+
+        .dc .desc {
+            font-size: 11.5px;
+            color: var(--text-secondary);
+            line-height: 1.55;
+            margin-bottom: 10px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden
+        }
+
+        .dc .cr {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            font-weight: 500
+        }
+
+        .dc-a {
+            display: flex;
+            gap: 7px
+        }
+
+        .bt-r {
+            padding: 6px 14px;
+            background: linear-gradient(135deg, #2D8FB3, #2480A0);
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            font-size: 11.5px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            box-shadow: 0 2px 6px rgba(45, 143, 179, .2)
+        }
+
+        .bt-r:hover {
+            background: linear-gradient(135deg, #2480A0, #1B6A8A);
+            box-shadow: 0 4px 12px rgba(45, 143, 179, .25)
+        }
+
+        .bt-v {
+            padding: 6px 14px;
+            background: #fff;
+            color: var(--text-secondary);
+            border: 1px solid var(--card-border);
+            border-radius: 7px;
+            font-size: 11.5px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            box-shadow: var(--shadow-xs)
+        }
+
+        .bt-v:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-ultra-light)
+        }
+
+        /* INLINE PROMPT */
+        .ip {
+            margin: 0 20px 20px;
+            background: var(--card-bg);
+            border: 1.5px dashed #B8D4E8;
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: .2s
+        }
+
+        .ip:hover {
+            border-color: var(--accent)
+        }
+
+        .ip .spark {
+            font-size: 22px;
+            flex-shrink: 0
+        }
+
+        .ip-in {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 13.5px;
+            font-family: inherit;
+            color: var(--text-primary);
+            background: transparent
+        }
+
+        .ip-in::placeholder {
+            color: var(--text-muted)
+        }
+
+        .bt-g {
+            padding: 7px 16px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            opacity: .6;
+            transition: .2s;
+            flex-shrink: 0
+        }
+
+        .bt-g:hover {
+            opacity: 1
+        }
+
+        /* QUICK START */
+        .qs {
+            margin: 20px 24px;
+            padding: 22px 24px;
+            background: linear-gradient(135deg, #E8F4FB, #D4EAFA);
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(45, 143, 179, .12);
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            box-shadow: var(--shadow-xs)
+        }
+
+        .qs .icon {
+            font-size: 34px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .06))
+        }
+
+        .qs .txt {
+            flex: 1
+        }
+
+        .qs .txt .t {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            letter-spacing: -.02em
+        }
+
+        .qs .txt .d {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            line-height: 1.55
+        }
+
+        .bt-cta {
+            padding: 10px 22px;
+            background: linear-gradient(135deg, #2D8FB3, #2480A0);
+            color: #fff;
+            border: none;
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-accent)
+        }
+
+        .bt-cta:hover {
+            background: linear-gradient(135deg, #2480A0, #1B6A8A);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(45, 143, 179, .25)
+        }
+
+        /* FEEDBACK */
+        .feedback-tab {
+            position: fixed;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--accent);
+            color: #fff;
+            padding: 10px 6px;
+            border-radius: 8px 0 0 8px;
+            font-size: 11px;
+            font-weight: 600;
+            writing-mode: vertical-rl;
+            cursor: pointer;
+            z-index: 50;
+            letter-spacing: .5px;
+            box-shadow: -2px 0 8px rgba(45, 143, 179, .2)
+        }
+
+        /* SCENARIO VIEWS */
+        .sv {
+            display: none
+        }
+
+        .sv.active {
+            display: flex
+        }
+
+        /* ═══ WORKFLOW DETAIL PANEL ═══ */
+        .detail-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, .45);
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .3s ease
+        }
+
+        .detail-overlay.open {
+            opacity: 1;
+            pointer-events: auto
+        }
+
+        .detail-panel {
+            position: fixed;
+            top: 0;
+            right: -640px;
+            width: 620px;
+            height: 100vh;
+            background: #fff;
+            z-index: 201;
+            box-shadow: -12px 0 50px rgba(0, 0, 0, .12), -2px 0 10px rgba(0, 0, 0, .04);
+            transition: right .35s cubic-bezier(.4, 0, .2, 1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-left: 1px solid rgba(0, 0, 0, .05)
+        }
+
+        .detail-panel.open {
+            right: 0
+        }
+
+        .dp-header {
+            padding: 20px 28px;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-shrink: 0;
+            background: var(--topbar-bg)
+        }
+
+        .dp-back {
+            width: 34px;
+            height: 34px;
+            border: 1px solid var(--card-border);
+            background: #fff;
+            border-radius: 9px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: var(--text-secondary);
+            transition: var(--transition-fast);
+            box-shadow: var(--shadow-xs)
+        }
+
+        .dp-back:hover {
+            border-color: var(--accent);
+            color: var(--accent)
+        }
+
+        .dp-title {
+            flex: 1;
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            letter-spacing: -.02em
+        }
+
+        .dp-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-shrink: 0
+        }
+
+        .dp-share {
+            padding: 6px 14px;
+            background: #f8fafc;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-secondary);
+            transition: .15s
+        }
+
+        .dp-share:hover {
+            border-color: var(--accent);
+            color: var(--accent)
+        }
+
+        .dp-menu-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--card-border);
+            background: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: var(--text-muted);
+            transition: .15s;
+            position: relative
+        }
+
+        .dp-menu-btn:hover {
+            border-color: var(--accent);
+            color: var(--text-primary)
+        }
+
+        .dp-meta {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0
+        }
+
+        .dp-meta-left {
+            display: flex;
+            flex-direction: column;
+            gap: 6px
+        }
+
+        .dp-apps {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-muted)
+        }
+
+        .dp-apps .ti {
+            width: 24px;
+            height: 24px;
+            font-size: 11px
+        }
+
+        .dp-creator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12.5px;
+            color: var(--text-secondary)
+        }
+
+        .dp-creator-av {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700
+        }
+
+        .dp-action-bar {
+            display: flex;
+            gap: 8px
+        }
+
+        .dp-btn-run {
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #2D8FB3, #2480A0);
+            color: #fff;
+            border: none;
+            border-radius: 9px;
+            font-size: 12.5px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition-fast);
+            box-shadow: var(--shadow-accent)
+        }
+
+        .dp-btn-run:hover {
+            background: linear-gradient(135deg, #2480A0, #1B6A8A);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(45, 143, 179, .25)
+        }
+
+        .dp-btn-edit,
+        .dp-btn-schedule {
+            padding: 8px 16px;
+            background: #fff;
+            border: 1px solid var(--card-border);
+            border-radius: 9px;
+            font-size: 12px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-secondary);
+            transition: var(--transition-fast);
+            box-shadow: var(--shadow-xs)
+        }
+
+        .dp-btn-edit:hover,
+        .dp-btn-schedule:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-ultra-light)
+        }
+
+        /* Detail Tabs */
+        .dp-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--card-border);
+            padding: 0 24px;
+            flex-shrink: 0
+        }
+
+        .dp-tab {
+            padding: 13px 18px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-family: inherit;
+            border-bottom: 2px solid transparent;
+            transition: var(--transition-fast);
+            letter-spacing: -.01em
+        }
+
+        .dp-tab:hover {
+            color: var(--text-primary);
+            background: var(--accent-ultra-light)
+        }
+
+        .dp-tab.active {
+            color: var(--accent);
+            font-weight: 600;
+            border-bottom-color: var(--accent)
+        }
+
+        .dp-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px
+        }
+
+        .dp-body::-webkit-scrollbar {
+            width: 5px
+        }
+
+        .dp-body::-webkit-scrollbar-thumb {
+            background: #c5d0db;
+            border-radius: 3px
+        }
+
+        .dp-tab-content {
+            display: none
+        }
+
+        .dp-tab-content.active {
+            display: block
+        }
+
+        /* Overview */
+        .dp-section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 10px
+        }
+
+        .dp-section-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 20px
+        }
+
+        .dp-feature-list {
+            list-style: none;
+            margin-bottom: 20px;
+            padding: 0
+        }
+
+        .dp-feature-list li {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            padding: 6px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            line-height: 1.5
+        }
+
+        .dp-feature-list li::before {
+            content: '•';
+            color: var(--accent);
+            font-weight: 700;
+            flex-shrink: 0
+        }
+
+        /* Step Flow */
+        .dp-flow {
+            margin-top: 20px
+        }
+
+        .dp-flow-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-primary)
+        }
+
+        .dp-step {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            margin-bottom: 10px;
+            transition: var(--transition-fast);
+            cursor: pointer;
+            box-shadow: var(--shadow-xs)
+        }
+
+        .dp-step:hover {
+            background: var(--accent-ultra-light);
+            border-color: rgba(45, 143, 179, .2);
+            box-shadow: var(--shadow)
+        }
+
+        .dp-step-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: var(--accent-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--accent);
+            font-size: 14px
+        }
+
+        .dp-step-info {
+            flex: 1;
+            min-width: 0
+        }
+
+        .dp-step-name {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px
+        }
+
+        .dp-step-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .dp-step-badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            flex-shrink: 0
+        }
+
+        .dp-step-badge.process {
+            background: #EEF2FF;
+            color: #6366F1
+        }
+
+        .dp-step-badge.retrieve {
+            background: #FEF3C7;
+            color: #D97706
+        }
+
+        .dp-step-badge.compose {
+            background: #ECFDF5;
+            color: #059669
+        }
+
+        /* Default Inputs */
+        .dp-input-group {
+            margin-bottom: 20px
+        }
+
+        .dp-input-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px
+        }
+
+        .dp-input-label .req {
+            color: #EF4444;
+            font-size: 14px
+        }
+
+        .dp-input-hint {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            margin-bottom: 8px
+        }
+
+        .dp-input-field {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 13px;
+            color: var(--text-primary);
+            background: #fff;
+            transition: .15s;
+            outline: none
+        }
+
+        .dp-input-field:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(45, 143, 179, .1)
+        }
+
+        .dp-save-btn {
+            padding: 10px 26px;
+            background: linear-gradient(135deg, #2D8FB3, #2480A0);
+            color: #fff;
+            border: none;
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            float: right;
+            box-shadow: var(--shadow-accent)
+        }
+
+        .dp-save-btn:hover {
+            background: linear-gradient(135deg, #2480A0, #1B6A8A);
+            box-shadow: 0 6px 20px rgba(45, 143, 179, .25)
+        }
+
+        /* History */
+        .dp-history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px
+        }
+
+        .dp-refresh {
+            padding: 6px 14px;
+            border: 1px solid var(--card-border);
+            background: #fff;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-secondary);
+            transition: .15s
+        }
+
+        .dp-refresh:hover {
+            border-color: var(--accent);
+            color: var(--accent)
+        }
+
+        .dp-history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px
+        }
+
+        .dp-history-table th {
+            text-align: left;
+            padding: 10px 12px;
+            background: var(--ice-bg);
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            border-bottom: 1px solid var(--card-border)
+        }
+
+        .dp-history-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--ice-subtle);
+            color: var(--text-secondary)
+        }
+
+        .dp-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 11px;
+            letter-spacing: .01em
+        }
+
+        .dp-status.success {
+            background: #ECFDF5;
+            color: #059669
+        }
+
+        .dp-status.failed {
+            background: #FEF2F2;
+            color: #DC2626
+        }
+
+        .dp-status.running {
+            background: #EFF6FF;
+            color: #2563EB
+        }
+
+        .dp-empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--ice-bg);
+            border-radius: var(--radius);
+            color: var(--text-muted);
+            font-size: 13px
+        }
+
+        /* ═══ DROPDOWN MENU ═══ */
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 4px);
+            right: 0;
+            background: #fff;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, .12);
+            min-width: 200px;
+            z-index: 300;
+            padding: 6px;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-4px);
+            transition: all .15s ease
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0)
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            border: none;
+            background: none;
+            width: 100%;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: inherit;
+            color: var(--text-primary);
+            cursor: pointer;
+            border-radius: 6px;
+            transition: .1s;
+            text-align: left
+        }
+
+        .dropdown-item:hover {
+            background: var(--ice-bg)
+        }
+
+        .dropdown-item.danger {
+            color: #DC2626
+        }
+
+        .dropdown-item.danger:hover {
+            background: #FEF2F2
+        }
+
+        .dropdown-item.warning {
+            color: #D97706
+        }
+
+        .dropdown-item.warning:hover {
+            background: #FFFBEB
+        }
+
+        .dropdown-sep {
+            height: 1px;
+            background: var(--card-border);
+            margin: 4px 6px
+        }
+
+        /* ═══ CARD-LEVEL DROPDOWN ═══ */
+        .wc,
+        .dc {
+            position: relative
+        }
+
+        .card-dropdown {
+            position: absolute;
+            top: 38px;
+            right: 8px;
+            background: #fff;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, .12);
+            min-width: 190px;
+            z-index: 150;
+            padding: 6px;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-4px);
+            transition: all .15s ease
+        }
+
+        .card-dropdown.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0)
+        }
+
+        /* ═══ CREATE WORKFLOW MODAL ═══ */
+        .create-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, .5);
+            z-index: 250;
+            display: none;
+            align-items: center;
+            justify-content: center
+        }
+
+        .create-modal-overlay.open {
+            display: flex
+        }
+
+        .create-modal {
+            background: #fff;
+            border-radius: var(--radius-xl);
+            width: 640px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, .18), 0 10px 30px rgba(0, 0, 0, .08);
+            animation: modalIn .3s cubic-bezier(.4, 0, .2, 1);
+            border: 1px solid rgba(0, 0, 0, .04)
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(.97)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1)
+            }
+        }
+
+        .cm-header {
+            padding: 28px 32px 8px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between
+        }
+
+        .cm-close {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--card-border);
+            background: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: var(--text-muted);
+            transition: .15s
+        }
+
+        .cm-close:hover {
+            background: var(--ice-bg);
+            color: var(--text-primary)
+        }
+
+        .cm-title {
+            font-size: 24px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 6px
+        }
+
+        .cm-sub {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 24px;
+            padding: 0 32px
+        }
+
+        .cm-body {
+            padding: 0 32px 28px
+        }
+
+        .cm-label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px
+        }
+
+        .cm-label .req {
+            color: #EF4444
+        }
+
+        .cm-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 14px 16px;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 13.5px;
+            color: var(--text-primary);
+            resize: vertical;
+            outline: none;
+            transition: .15s;
+            margin-bottom: 16px
+        }
+
+        .cm-textarea::placeholder {
+            color: var(--text-muted)
+        }
+
+        .cm-textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(45, 143, 179, .1)
+        }
+
+        .cm-upload {
+            border: 2px dashed var(--card-border);
+            border-radius: 10px;
+            padding: 32px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: .15s
+        }
+
+        .cm-upload:hover {
+            border-color: var(--accent);
+            background: var(--ice-bg)
+        }
+
+        .cm-upload-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+            color: var(--accent)
+        }
+
+        .cm-upload-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px
+        }
+
+        .cm-upload-hint {
+            font-size: 12px;
+            color: var(--text-muted)
+        }
+
+        .cm-actions {
+            display: flex;
+            gap: 10px
+        }
+
+        .cm-btn-enhance {
+            padding: 12px 20px;
+            background: #f8fafc;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-secondary);
+            transition: .15s
+        }
+
+        .cm-btn-enhance:hover {
+            border-color: var(--accent);
+            color: var(--accent)
+        }
+
+        .cm-btn-generate {
+            flex: 1;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #2D8FB3, #2480A0);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition);
+            box-shadow: var(--shadow-accent)
+        }
+
+        .cm-btn-generate:hover {
+            background: linear-gradient(135deg, #2480A0, #1B6A8A);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(45, 143, 179, .25)
+        }
+
+        /* ═══ TOAST ═══ */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #fff;
+            color: var(--text-primary);
+            padding: 14px 20px;
+            border-radius: var(--radius-lg);
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 9999;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, .1), 0 4px 12px rgba(0, 0, 0, .05);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            transform: translateY(20px) scale(0.95);
+            opacity: 0;
+            transition: all .35s cubic-bezier(.4, 0, .2, 1);
+            pointer-events: none;
+        }
+
+        .toast.show {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+
+        .toast-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--success);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(16, 185, 129, .25);
+        }
+
+        .toast-icon svg {
+            width: 14px;
+            height: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SCENARIO SWITCHER -->
+    <div class="scenario-bar">
+        <span class="label">Scenario:</span>
+        <button class="scenario-btn s1 active" onclick="switchScenario(1)"><span
+                style="margin-right:6px">🆕</span>Scenario 1 — New User</button>
+        <button class="scenario-btn s2" onclick="switchScenario(2)"><span style="margin-right:6px">🔄</span>Scenario 2 —
+            Returning User</button>
+        <button class="scenario-btn s3" onclick="switchScenario(3)"><span style="margin-right:6px">⚡</span>Scenario 3 —
+            Power User</button>
+        <div class="scenario-desc" id="scenarioDesc">First-time visitor with zero workflows. Needs education, guidance,
+            and blueprints to understand what workflows are.</div>
+    </div>
+
+    <!-- ========== SCENARIO 1: NEW USER ========== -->
+    <div class="sv active main-wrapper" id="s1">
+        <div class="app">
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <div class="logo"><svg viewBox="0 0 28 28" fill="none">
+                            <rect width="28" height="28" rx="6" fill="#2D8FB3" />
+                            <path d="M8 10L14 6L20 10V18L14 22L8 18V10Z" stroke="#fff" stroke-width="1.5" fill="none" />
+                            <circle cx="14" cy="14" r="3" fill="#fff" />
+                        </svg>
+                        <div>
+                            <div class="logo-text">Kara<span>X</span>.ai</div>
+                            <div class="logo-sub">powered by csaiabs</div>
+                        </div>
+                    </div><button class="sidebar-collapse">‹</button>
+                </div>
+                <div class="sidebar-search"><span class="si">🔍</span><input type="text"
+                        placeholder="Search chats..."><span class="shortcut">⌘K</span></div>
+                <div class="sidebar-nav">
+                    <a class="nav-item" href="#">Onechat</a>
+                    <a class="nav-item active" href="#">Workflows</a>
+                    <a class="nav-item" href="#">Meetings</a>
+                    <a class="nav-item" href="#">Apps</a>
+                    <a class="nav-item" href="#">Agents</a>
+                </div>
+                <div class="sidebar-section"><span class="sidebar-section-title">Your Chats</span></div>
+                <div class="chat-item">Premium Graduation Cerem...</div>
+                <div class="chat-item">Graduation Backdrop Image...</div>
+                <div class="see-more">••• See more</div>
+                <div class="sidebar-footer">
+                    <div class="avatar">SS</div>
+                    <div class="user-info">
+                        <div class="user-name">Satyam Singh</div>
+                        <div class="user-email">satyam25613@gmail.com</div>
+                    </div>
+                </div>
+            </div>
+            <div class="main">
+                <div class="topbar">
+                    <div class="topbar-left">
+                        <a class="tab active" href="#" onclick="switchTab(this,'wf1');return false">Workflows</a>
+                        <a class="tab" href="#" onclick="switchTab(this,'dsc1');return false">Discover</a>
+                    </div>
+                    <div class="topbar-right">
+                        <div class="search-bar"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor"
+                                stroke-width="1.5">
+                                <circle cx="6" cy="6" r="4.5" />
+                                <path d="M10 10l3 3" />
+                            </svg><input type="text" placeholder="Search"></div>
+                        <button class="btn-create"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M7 2v10M2 7h10" />
+                            </svg>Create New Workflow</button>
+                    </div>
+                </div>
+                <div class="content">
+                    <!-- NEW USER: Workflows Tab -->
+                    <div class="tv active" id="wf1">
+                        <div class="wb new-user" id="wb1">
+                            <div class="icon">🌟</div>
+                            <div class="txt"><strong>Welcome to Workflows!</strong><span>Workflows automate your tasks
+                                    by connecting apps like Gmail, LinkedIn, and Sheets. Start with a blueprint or build
+                                    your own.</span></div><button class="dismiss"
+                                onclick="this.parentElement.style.display='none'">✕</button>
+                        </div>
+                        <!-- Education Hero on Workflows Tab (for new users) -->
+                        <div class="hero" style="margin-top:0">
+                            <div class="hero-c">
+                                <div class="hero-badge">⚡ Automation Made Simple</div>
+                                <h2>What's a <em>Workflow</em>?</h2>
+                                <p>Workflows are simple shortcuts that turn complex tasks into instant automations.
+                                    Connect your favorite tools and let AI handle the rest.</p>
+                                <div class="hero-pills"><span class="hp">✚ No coding required</span><span class="hp">✓
+                                        800+ apps</span><span class="hp">⚙ AI-powered</span></div>
+                                <div class="hero-actions"><button class="bt-w">▶ Watch Demo</button><button
+                                        class="bt-b">Browse Blueprints →</button></div>
+                            </div>
+                            <div class="hero-v">🤖</div>
+                        </div>
+                        <!-- Starter Templates on Workflows Tab -->
+                        <div class="sec">
+                            <h3>⭐ Start with a Blueprint</h3>
+                            <div class="sub">Curated automations to get you started in under 60 seconds</div>
+                            <div class="g3">
+                                <div class="dc"><button class="dm">⋯</button>
+                                    <div class="dc-i">
+                                        <div class="ti gm">✉</div>
+                                        <div class="ti sh">▦</div>
+                                    </div>
+                                    <h4>Competitor Intelligence Email Digest</h4>
+                                    <div class="desc">Monitors competitor news daily and delivers a formatted
+                                        intelligence digest to your inbox.</div>
+                                    <div class="cr">by Sarang Kulkarni · ⭐ Popular</div>
+                                    <div class="dc-a"><button class="bt-r">Run</button><button class="bt-v">View
+                                            →</button></div>
+                                </div>
+                                <div class="dc"><button class="dm">⋯</button>
+                                    <div class="dc-i">
+                                        <div class="ti gm">✉</div>
+                                    </div>
+                                    <h4>Unread Email Digest with Priority Labels</h4>
+                                    <div class="desc">Scans unread emails, applies AI priority scoring, and sends a
+                                        categorized summary.</div>
+                                    <div class="cr">by Ashish Patel · 📧 Email</div>
+                                    <div class="dc-a"><button class="bt-r">Run</button><button class="bt-v">View
+                                            →</button></div>
+                                </div>
+                                <div class="dc"><button class="dm">⋯</button>
+                                    <div class="dc-i">
+                                        <div class="ti li">in</div>
+                                        <div class="ti sh">▦</div>
+                                    </div>
+                                    <h4>LinkedIn ICP Prospecting & Qualification</h4>
+                                    <div class="desc">Searches LinkedIn for ideal customer profiles, qualifies leads,
+                                        and syncs to CRM.</div>
+                                    <div class="cr">by Shubhangi Chavan · 📊 Sales</div>
+                                    <div class="dc-a"><button class="bt-r">Run</button><button class="bt-v">View
+                                            →</button></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ip"><span class="spark">✨</span><input class="ip-in" type="text"
+                                placeholder="Or describe what you want to automate... e.g. 'Summarize my Gmail every morning'"><button
+                                class="bt-g">Generate Workflow</button></div>
+                    </div>
+                    <!-- NEW USER: Discover Tab -->
+                    <div class="tv" id="dsc1">
+                        <div class="hero">
+                            <div class="hero-c">
+                                <div class="hero-badge">⚡ Automation Made Simple</div>
+                                <h2>Discover <em>Workflows</em></h2>
+                                <p>Browse community-built automations or describe what you need. AI builds it for you.
+                                </p>
+                                <div class="hero-pills"><span class="hp">✚ No coding</span><span class="hp">✓ 800+
+                                        apps</span><span class="hp">⚙ AI-powered</span></div>
+                                <div class="hero-actions"><button class="bt-w">▶ Watch Demo</button></div>
+                            </div>
+                            <div class="hero-v">🔍</div>
+                        </div>
+                        <div class="ip"><span class="spark">✨</span><input class="ip-in" type="text"
+                                placeholder="Describe what you want to automate..."><button
+                                class="bt-g">Generate</button></div>
+                        <div class="filters"><span class="fl">Filter:</span><button class="fc active"
+                                onclick="filterCat(this,'all','dwf1')">All <span
+                                    class="fc-count">(67)</span></button><button class="fc"
+                                onclick="filterCat(this,'email','dwf1')">📧 Email <span
+                                    class="fc-count">(14)</span></button><button class="fc"
+                                onclick="filterCat(this,'sales','dwf1')">📊 Sales & CRM <span
+                                    class="fc-count">(11)</span></button><button class="fc"
+                                onclick="filterCat(this,'research','dwf1')">🔍 Research <span
+                                    class="fc-count">(10)</span></button><button class="fc"
+                                onclick="filterCat(this,'social','dwf1')">📱 Social & Content <span
+                                    class="fc-count">(10)</span></button><button class="fc"
+                                onclick="filterCat(this,'productivity','dwf1')">💼 Productivity <span
+                                    class="fc-count">(10)</span></button><button class="fc"
+                                onclick="filterCat(this,'devops','dwf1')">🔧 DevOps <span
+                                    class="fc-count">(7)</span></button><button class="fc"
+                                onclick="filterCat(this,'finance','dwf1')">💰 Finance <span
+                                    class="fc-count">(5)</span></button></div>
+                        <div class="sec">
+                            <h3>🌐 Community Workflows</h3>
+                            <div class="sub">Discover workflows created by our community · Sorted by category</div>
+                            <div class="g3" id="dwf1"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SCENARIO 2: RETURNING USER ========== -->
+    <div class="sv main-wrapper" id="s2">
+        <div class="app">
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <div class="logo"><svg viewBox="0 0 28 28" fill="none">
+                            <rect width="28" height="28" rx="6" fill="#2D8FB3" />
+                            <path d="M8 10L14 6L20 10V18L14 22L8 18V10Z" stroke="#fff" stroke-width="1.5" fill="none" />
+                            <circle cx="14" cy="14" r="3" fill="#fff" />
+                        </svg>
+                        <div>
+                            <div class="logo-text">Kara<span>X</span>.ai</div>
+                            <div class="logo-sub">powered by csaiabs</div>
+                        </div>
+                    </div><button class="sidebar-collapse">‹</button>
+                </div>
+                <div class="sidebar-search"><span class="si">🔍</span><input type="text"
+                        placeholder="Search chats..."><span class="shortcut">⌘K</span></div>
+                <div class="sidebar-nav">
+                    <a class="nav-item" href="#">Onechat</a>
+                    <a class="nav-item active" href="#">Workflows</a>
+                    <a class="nav-item" href="#">Meetings</a>
+                    <a class="nav-item" href="#">Apps</a>
+                    <a class="nav-item" href="#">Agents</a>
+                </div>
+                <div class="sidebar-section"><span class="sidebar-section-title">Your Chats</span></div>
+                <div class="chat-item">Premium Graduation Cerem...</div>
+                <div class="chat-item">Graduation Backdrop Image...</div>
+                <div class="chat-item">Nostalgic Themed Image Cr...</div>
+                <div class="chat-item">Rajmata Jijabai: Portraits of ...</div>
+                <div class="chat-item">Shivaji Maharaj Coronation ...</div>
+                <div class="see-more">••• See more</div>
+                <div class="sidebar-footer">
+                    <div class="avatar">SS</div>
+                    <div class="user-info">
+                        <div class="user-name">Satyam Singh</div>
+                        <div class="user-email">satyam25613@gmail.com</div>
+                    </div>
+                </div>
+            </div>
+            <div class="main">
+                <div class="topbar">
+                    <div class="topbar-left">
+                        <a class="tab active" href="#" onclick="switchTab(this,'wf2');return false">Workflows</a>
+                        <a class="tab" href="#" onclick="switchTab(this,'dsc2');return false">Discover</a>
+                    </div>
+                    <div class="topbar-right">
+                        <div class="search-bar"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor"
+                                stroke-width="1.5">
+                                <circle cx="6" cy="6" r="4.5" />
+                                <path d="M10 10l3 3" />
+                            </svg><input type="text" placeholder="Search"></div>
+                        <button class="btn-create" onclick="openCreateModal()"><svg viewBox="0 0 14 14" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <path d="M7 2v10M2 7h10" />
+                            </svg>Create New Workflow</button>
+                    </div>
+                </div>
+                <div class="content">
+                    <!-- RETURNING USER: Workflows Tab -->
+                    <div class="tv active" id="wf2">
+                        <div class="wb ret-user" id="wb2">
+                            <div class="icon">👋</div>
+                            <div class="txt"><strong>Welcome back, Satyam</strong><span>You have 3 active workflows.
+                                    Check recent runs or create a new one.</span></div><button class="dismiss"
+                                onclick="this.parentElement.style.display='none'">✕</button>
+                        </div>
+                        <div class="stats">
+                            <div class="stat">
+                                <div class="si b">📊</div>
+                                <div>
+                                    <div class="num">3</div>
+                                    <div class="lbl">Active Workflows</div>
+                                </div>
+                            </div>
+                            <div class="stat">
+                                <div class="si g">✅</div>
+                                <div>
+                                    <div class="num">24</div>
+                                    <div class="lbl">Successful Runs</div>
+                                </div>
+                            </div>
+                            <div class="stat">
+                                <div class="si o">⏱</div>
+                                <div>
+                                    <div class="num">8.5h</div>
+                                    <div class="lbl">Time Saved</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mw">
+                            <h2>My Workflows</h2>
+                            <div class="wg">
+                                <!-- Card 1 -->
+                                <div class="wc" id="s2wc1">
+                                    <button class="dm"
+                                        onclick="event.stopPropagation();toggleCardMenu('s2wc1')">⋯</button>
+                                    <div class="card-dropdown" id="s2wc1-menu">
+                                        <button class="dropdown-item"
+                                            onclick="showToast('Opening workflow editor...')">✨ Edit Workflow</button>
+                                        <button class="dropdown-item" onclick="showToast('Schedule settings opened')">⏰
+                                            Add Schedule</button>
+                                        <button class="dropdown-item" onclick="showToast('Link copied to clipboard')">🔗
+                                            Copy Link</button>
+                                        <button class="dropdown-item" onclick="showToast('Workflow pinned')">📌 Pin
+                                            Workflow</button>
+                                        <div class="dropdown-sep"></div>
+                                        <button class="dropdown-item danger"
+                                            onclick="showToast('Delete action cancelled')">🗑 Delete Workflow</button>
+                                    </div>
+                                    <h4>AI Intelligence Report Generator</h4>
+                                    <div class="wc-b">
+                                        <div class="wc-i">
+                                            <div class="ti w">W</div>
+                                            <div class="ti gm">✉</div>
+                                        </div>
+                                        <div class="wc-a"><button class="bt-s"
+                                                onclick="showToast('Test run initiated...')">Test Run</button><button
+                                                class="bt-p"
+                                                onclick="openDetailPanel('AI Intelligence Report Generator','Satyam Singh Rajput','research',['w','gm'])">View
+                                                →</button></div>
+                                    </div>
+                                </div>
+                                <!-- Card 2 -->
+                                <div class="wc" id="s2wc2">
+                                    <button class="dm"
+                                        onclick="event.stopPropagation();toggleCardMenu('s2wc2')">⋯</button>
+                                    <div class="card-dropdown" id="s2wc2-menu">
+                                        <button class="dropdown-item"
+                                            onclick="showToast('Opening workflow editor...')">✨ Edit Workflow</button>
+                                        <button class="dropdown-item" onclick="showToast('Schedule settings opened')">⏰
+                                            Add Schedule</button>
+                                        <button class="dropdown-item" onclick="showToast('Link copied to clipboard')">🔗
+                                            Copy Link</button>
+                                        <button class="dropdown-item" onclick="showToast('Workflow pinned')">📌 Pin
+                                            Workflow</button>
+                                        <div class="dropdown-sep"></div>
+                                        <button class="dropdown-item danger"
+                                            onclick="showToast('Delete action cancelled')">🗑 Delete Workflow</button>
+                                    </div>
+                                    <h4>Global Opportunity Scout</h4>
+                                    <div class="wc-b">
+                                        <div class="wc-i">
+                                            <div class="ti w">W</div>
+                                            <div class="ti gm">✉</div>
+                                        </div>
+                                        <div class="wc-a"><button class="bt-s"
+                                                onclick="showToast('Running workflow...')">Run</button><button
+                                                class="bt-p"
+                                                onclick="openDetailPanel('Global Opportunity Scout','Satyam Singh Rajput','sales',['w','gm'])">View
+                                                →</button></div>
+                                    </div>
+                                </div>
+                                <!-- Card 3 -->
+                                <div class="wc" id="s2wc3">
+                                    <button class="dm"
+                                        onclick="event.stopPropagation();toggleCardMenu('s2wc3')">⋯</button>
+                                    <div class="card-dropdown" id="s2wc3-menu">
+                                        <button class="dropdown-item"
+                                            onclick="showToast('Opening workflow editor...')">✨ Edit Workflow</button>
+                                        <button class="dropdown-item" onclick="showToast('Schedule settings opened')">⏰
+                                            Add Schedule</button>
+                                        <button class="dropdown-item" onclick="showToast('Link copied to clipboard')">🔗
+                                            Copy Link</button>
+                                        <button class="dropdown-item" onclick="showToast('Workflow pinned')">📌 Pin
+                                            Workflow</button>
+                                        <div class="dropdown-sep"></div>
+                                        <button class="dropdown-item danger"
+                                            onclick="showToast('Delete action cancelled')">🗑 Delete Workflow</button>
+                                    </div>
+                                    <h4>[AUTO] Daily Tech Briefing</h4>
+                                    <div class="wc-b">
+                                        <div class="wc-i">
+                                            <div class="ti w">W</div>
+                                            <div class="ti gm">✉</div>
+                                        </div>
+                                        <div class="wc-a"><button class="bt-s"
+                                                onclick="showToast('Running workflow...')">Run</button><button
+                                                class="bt-p"
+                                                onclick="openDetailPanel('[AUTO] Daily Tech Briefing','Satyam Singh Rajput','research',['gm'])">View
+                                                →</button></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="qs">
+                            <div class="icon">🚀</div>
+                            <div class="txt">
+                                <div class="t">Ready to automate more?</div>
+                                <div class="d">Explore community-built blueprints or create a custom workflow from
+                                    scratch. No coding required.</div>
+                            </div><button class="bt-cta"
+                                onclick="switchTab(document.querySelector('#s2 .tab:nth-child(2)'),'dsc2')">Explore
+                                Blueprints →</button>
+                        </div>
+                    </div>
+                    <!-- RETURNING USER: Discover Tab -->
+                    <div class="tv" id="dsc2">
+                        <div class="hero">
+                            <div class="hero-c">
+                                <div class="hero-badge">⚡ Based on your history</div>
+                                <h2>Recommended for <em>You</em></h2>
+                                <p>Blueprints similar to your "AI Intelligence Report" workflow. Expand your automation
+                                    toolkit.</p>
+                                <div class="hero-actions"><button class="bt-w">▶ Watch Demo</button><button
+                                        class="bt-b">Browse All →</button></div>
+                            </div>
+                            <div class="hero-v">🎯</div>
+                        </div>
+                        <div class="filters"><span class="fl">Filter:</span><button class="fc active"
+                                onclick="filterCat(this,'all','dwf2')">All <span
+                                    class="fc-count">(67)</span></button><button class="fc"
+                                onclick="filterCat(this,'email','dwf2')">📧 Email <span
+                                    class="fc-count">(14)</span></button><button class="fc"
+                                onclick="filterCat(this,'sales','dwf2')">📊 Sales & CRM <span
+                                    class="fc-count">(11)</span></button><button class="fc"
+                                onclick="filterCat(this,'research','dwf2')">🔍 Research <span
+                                    class="fc-count">(10)</span></button><button class="fc"
+                                onclick="filterCat(this,'social','dwf2')">📱 Social & Content <span
+                                    class="fc-count">(10)</span></button><button class="fc"
+                                onclick="filterCat(this,'productivity','dwf2')">💼 Productivity <span
+                                    class="fc-count">(10)</span></button><button class="fc"
+                                onclick="filterCat(this,'devops','dwf2')">🔧 DevOps <span
+                                    class="fc-count">(7)</span></button><button class="fc"
+                                onclick="filterCat(this,'finance','dwf2')">💰 Finance <span
+                                    class="fc-count">(5)</span></button></div>
+                        <div class="sec">
+                            <h3>🌐 Community Workflows</h3>
+                            <div class="sub">Browse the full collection · Sorted by category</div>
+                            <div class="g3" id="dwf2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SCENARIO 3: POWER USER ========== -->
+    <div class="sv main-wrapper" id="s3">
+        <div class="app">
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <div class="logo"><svg viewBox="0 0 28 28" fill="none">
+                            <rect width="28" height="28" rx="6" fill="#2D8FB3" />
+                            <path d="M8 10L14 6L20 10V18L14 22L8 18V10Z" stroke="#fff" stroke-width="1.5" fill="none" />
+                            <circle cx="14" cy="14" r="3" fill="#fff" />
+                        </svg>
+                        <div>
+                            <div class="logo-text">Kara<span>X</span>.ai</div>
+                            <div class="logo-sub">powered by csaiabs</div>
+                        </div>
+                    </div><button class="sidebar-collapse">‹</button>
+                </div>
+                <div class="sidebar-search"><span class="si">🔍</span><input type="text"
+                        placeholder="Search chats..."><span class="shortcut">⌘K</span></div>
+                <div class="sidebar-nav">
+                    <a class="nav-item" href="#">Onechat</a>
+                    <a class="nav-item active" href="#">Workflows</a>
+                    <a class="nav-item" href="#">Meetings</a>
+                    <a class="nav-item" href="#">Apps</a>
+                    <a class="nav-item" href="#">Agents</a>
+                </div>
+                <div class="sidebar-section"><span class="sidebar-section-title">Your Chats</span></div>
+                <div class="chat-item">Premium Graduation Cerem...</div>
+                <div class="chat-item">Graduation Backdrop Image...</div>
+                <div class="chat-item">Nostalgic Themed Image Cr...</div>
+                <div class="chat-item">Rajmata Jijabai: Portraits of ...</div>
+                <div class="chat-item">Shivaji Maharaj Coronation ...</div>
+                <div class="see-more">••• See more</div>
+                <div class="sidebar-footer">
+                    <div class="avatar">SS</div>
+                    <div class="user-info">
+                        <div class="user-name">Satyam Singh</div>
+                        <div class="user-email">satyam25613@gmail.com</div>
+                    </div>
+                </div>
+            </div>
+            <div class="main">
+                <div class="topbar">
+                    <div class="topbar-left">
+                        <a class="tab active" href="#" onclick="switchTab(this,'wf3');return false">Workflows</a>
+                        <a class="tab" href="#" onclick="switchTab(this,'dsc3');return false">Discover</a>
+                    </div>
+                    <div class="topbar-right">
+                        <div class="search-bar"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor"
+                                stroke-width="1.5">
+                                <circle cx="6" cy="6" r="4.5" />
+                                <path d="M10 10l3 3" />
+                            </svg><input type="text" placeholder="Search"></div>
+                        <button class="btn-create"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M7 2v10M2 7h10" />
+                            </svg>Create New Workflow</button>
+                    </div>
+                </div>
+                <div class="content">
+                    <!-- POWER USER: Workflows Tab -->
+                    <div class="tv active" id="wf3">
+                        <div class="wb power-user" id="wb3">
+                            <div class="icon">⚡</div>
+                            <div class="txt"><strong>3 workflows running strong</strong><span>47 total runs this week ·
+                                    All workflows active · 12.5h saved this month</span></div><button class="dismiss"
+                                onclick="this.parentElement.style.display='none'">✕</button>
+                        </div>
+                        <div class="stats">
+                            <div class="stat">
+                                <div class="si b">📊</div>
+                                <div>
+                                    <div class="num">3</div>
+                                    <div class="lbl">Active Workflows</div>
+                                </div>
+                            </div>
+                            <div class="stat">
+                                <div class="si g">✅</div>
+                                <div>
+                                    <div class="num">47</div>
+                                    <div class="lbl">Runs This Week</div>
+                                </div>
+                            </div>
+                            <div class="stat">
+                                <div class="si o">⏱</div>
+                                <div>
+                                    <div class="num">12.5h</div>
+                                    <div class="lbl">Saved This Month</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mw">
+                            <h2>My Workflows</h2>
+                            <div class="wg">
+                                <div class="wc"><button class="dm">⋯</button>
+                                    <h4>AI Intelligence Report Generator</h4>
+                                    <div class="wc-b">
+                                        <div class="wc-i">
+                                            <div class="ti w">W</div>
+                                            <div class="ti gm">✉</div>
+                                        </div>
+                                        <div class="wc-a"><button class="bt-s">Test Run</button><button
+                                                class="bt-p">View →</button></div>
+                                    </div>
+                                </div>
+                                <div class="wc"><button class="dm">⋯</button>
+                                    <h4>Weekly Market Briefing</h4>
+                                    <div class="wc-b">
+                                        <div class="wc-i">
+                                            <div class="ti w">W</div>
+                                            <div class="ti gm">✉</div>
+                                        </div>
+                                        <div class="wc-a"><button class="bt-s">Test Run</button><button
+                                                class="bt-p">View →</button></div>
+                                    </div>
+                                </div>
+                                <div class="wc"><button class="dm">⋯</button>
+                                    <h4>LinkedIn Lead Qualifier</h4>
+                                    <div class="wc-b">
+                                        <div class="wc-i">
+                                            <div class="ti li">in</div>
+                                            <div class="ti sh">▦</div>
+                                        </div>
+                                        <div class="wc-a"><button class="bt-s">Test Run</button><button
+                                                class="bt-p">View →</button></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- POWER USER: Discover Tab -->
+                    <div class="tv" id="dsc3">
+                        <div class="filters" style="margin-top:20px"><span class="fl">Filter:</span><button
+                                class="fc active" onclick="filterCat(this,'all','dwf3')">All <span
+                                    class="fc-count">(67)</span></button><button class="fc"
+                                onclick="filterCat(this,'email','dwf3')">📧 Email <span
+                                    class="fc-count">(14)</span></button><button class="fc"
+                                onclick="filterCat(this,'sales','dwf3')">📊 Sales & CRM <span
+                                    class="fc-count">(11)</span></button><button class="fc"
+                                onclick="filterCat(this,'research','dwf3')">🔍 Research <span
+                                    class="fc-count">(10)</span></button><button class="fc"
+                                onclick="filterCat(this,'social','dwf3')">📱 Social & Content <span
+                                    class="fc-count">(10)</span></button><button class="fc"
+                                onclick="filterCat(this,'productivity','dwf3')">💼 Productivity <span
+                                    class="fc-count">(10)</span></button><button class="fc"
+                                onclick="filterCat(this,'devops','dwf3')">🔧 DevOps <span
+                                    class="fc-count">(7)</span></button><button class="fc"
+                                onclick="filterCat(this,'finance','dwf3')">💰 Finance <span
+                                    class="fc-count">(5)</span></button></div>
+                        <div class="ip"><span class="spark">✨</span><input class="ip-in" type="text"
+                                placeholder="Describe a new automation..."><button class="bt-g">Generate</button></div>
+                        <div class="sec">
+                            <h3>🌐 All Community Workflows</h3>
+                            <div class="sub">Full collection · Sorted by category</div>
+                            <div class="g3" id="dwf3"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ WORKFLOW DETAIL PANEL (Scenario 2) ═══ -->
+    <div class="detail-overlay" id="detailOverlay" onclick="closeDetailPanel()"></div>
+    <div class="detail-panel" id="detailPanel">
+        <div class="dp-header">
+            <button class="dp-back" onclick="closeDetailPanel()">←</button>
+            <div class="dp-title" id="dpTitle">Workflow Name</div>
+            <div class="dp-actions">
+                <button class="dp-share" onclick="showToast('Link copied to clipboard')">🔗 Share</button>
+                <div class="dp-menu-btn" onclick="toggleDetailMenu(event)">⋮
+                    <div class="dropdown-menu" id="dpMenuDropdown">
+                        <button class="dropdown-item" onclick="showToast('Opening workflow editor...')">✨ Edit
+                            Workflow</button>
+                        <button class="dropdown-item" onclick="showToast('Schedule settings opened')">⏰ Add
+                            Schedule</button>
+                        <button class="dropdown-item" onclick="showToast('Link copied to clipboard')">🔗 Copy
+                            Link</button>
+                        <button class="dropdown-item" onclick="showToast('Workflow pinned')">📌 Pin Workflow</button>
+                        <div class="dropdown-sep"></div>
+                        <button class="dropdown-item warning" onclick="showToast('Workflow unpublished')">🔒 Unpublish
+                            Workflow</button>
+                        <button class="dropdown-item danger" onclick="showToast('Delete action cancelled')">🗑 Delete
+                            Workflow</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="dp-meta">
+            <div class="dp-meta-left">
+                <div class="dp-apps">Apps: <div class="ti w" id="dpApp1">W</div>
+                    <div class="ti gm" id="dpApp2">✉</div>
+                </div>
+                <div class="dp-creator"><span>Creator:</span>
+                    <div class="dp-creator-av" id="dpCreatorAv">S</div> <span id="dpCreatorName">Satyam Singh
+                        Rajput</span>
+                </div>
+            </div>
+            <div class="dp-action-bar">
+                <button class="dp-btn-run" onclick="showToast('Workflow run initiated...')">▶ Run</button>
+                <button class="dp-btn-edit" onclick="showToast('Opening workflow editor...')">✨ Edit Workflow</button>
+                <button class="dp-btn-schedule" onclick="showToast('Schedule settings opened')">⏰ Add Schedule</button>
+            </div>
+        </div>
+        <div class="dp-tabs">
+            <button class="dp-tab active" onclick="switchDetailTab(this,'dpOverview')">Overview</button>
+            <button class="dp-tab" onclick="switchDetailTab(this,'dpInputs')">Default Inputs</button>
+            <button class="dp-tab" onclick="switchDetailTab(this,'dpHistory')">History</button>
+        </div>
+        <div class="dp-body">
+            <!-- Overview Tab -->
+            <div class="dp-tab-content active" id="dpOverview">
+                <h3 class="dp-section-title">Overview</h3>
+                <p class="dp-section-text" id="dpOverviewDesc">This workflow performs deep web searches across multiple
+                    AI categories and compiles the findings into a comprehensive, formatted email report. It's designed
+                    to help teams stay informed about the latest developments in artificial intelligence.</p>
+                <h3 class="dp-section-title">How It Works</h3>
+                <p class="dp-section-text">When triggered, the workflow automatically searches the web for the latest AI
+                    news, research papers, and industry updates. It then analyzes and categorizes the information,
+                    generates a structured summary with key insights, and delivers it as a professionally formatted
+                    email report.</p>
+                <h3 class="dp-section-title">Key Features</h3>
+                <ul class="dp-feature-list">
+                    <li>Automated multi-source web research across AI categories</li>
+                    <li>Intelligent content analysis and categorization</li>
+                    <li>Structured summary with key insights and action items</li>
+                    <li>Professional email formatting with rich media support</li>
+                    <li>Customizable delivery schedule and recipients</li>
+                </ul>
+                <div class="dp-flow">
+                    <h4 class="dp-flow-title">Step-by-Step Flow</h4>
+                    <div class="dp-step">
+                        <div class="dp-step-icon">🔍</div>
+                        <div class="dp-step-info">
+                            <div class="dp-step-name">Search AI Sources</div>
+                            <div class="dp-step-desc">Scans multiple web sources for latest AI developments...</div>
+                        </div><span class="dp-step-badge retrieve">RETRIEVE</span>
+                    </div>
+                    <div class="dp-step">
+                        <div class="dp-step-icon">🧠</div>
+                        <div class="dp-step-info">
+                            <div class="dp-step-name">Analyze & Categorize</div>
+                            <div class="dp-step-desc">Processes raw data and identifies key themes and trends...</div>
+                        </div><span class="dp-step-badge process">PROCESS</span>
+                    </div>
+                    <div class="dp-step">
+                        <div class="dp-step-icon">📊</div>
+                        <div class="dp-step-info">
+                            <div class="dp-step-name">Generate Insights</div>
+                            <div class="dp-step-desc">Creates structured analysis with actionable insights...</div>
+                        </div><span class="dp-step-badge process">PROCESS</span>
+                    </div>
+                    <div class="dp-step">
+                        <div class="dp-step-icon">📧</div>
+                        <div class="dp-step-info">
+                            <div class="dp-step-name">Compose & Deliver Report</div>
+                            <div class="dp-step-desc">Formats findings into professional email report...</div>
+                        </div><span class="dp-step-badge compose">COMPOSE</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Default Inputs Tab -->
+            <div class="dp-tab-content" id="dpInputs">
+                <div class="dp-input-group">
+                    <div class="dp-input-label">Search Topics <span class="req">*</span></div>
+                    <div class="dp-input-hint">Comma-separated AI topics to research (default: 'LLMs, Computer Vision,
+                        Robotics')</div>
+                    <input class="dp-input-field" type="text" placeholder="LLMs, Computer Vision, Robotics">
+                </div>
+                <div class="dp-input-group">
+                    <div class="dp-input-label">Report Depth</div>
+                    <div class="dp-input-hint">Level of detail for the report (options: brief, standard, comprehensive)
+                    </div>
+                    <input class="dp-input-field" type="text" placeholder="standard">
+                </div>
+                <div class="dp-input-group">
+                    <div class="dp-input-label">Delivery Email</div>
+                    <div class="dp-input-hint">Email address to receive the generated report</div>
+                    <input class="dp-input-field" type="text" placeholder="satyam.singh@c3alabs.com">
+                </div>
+                <button class="dp-save-btn" onclick="showToast('Default inputs saved successfully')">Save
+                    Defaults</button>
+            </div>
+            <!-- History Tab -->
+            <div class="dp-tab-content" id="dpHistory">
+                <div class="dp-history-header">
+                    <h3 class="dp-section-title">Execution History</h3>
+                    <button class="dp-refresh" onclick="showToast('History refreshed')">🔄 Refresh</button>
+                </div>
+                <table class="dp-history-table">
+                    <thead>
+                        <tr>
+                            <th>Run ID</th>
+                            <th>Status</th>
+                            <th>Started</th>
+                            <th>Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>#RUN-0024</td>
+                            <td><span class="dp-status success">✓ Success</span></td>
+                            <td>Mar 3, 9:15 AM</td>
+                            <td>2m 34s</td>
+                        </tr>
+                        <tr>
+                            <td>#RUN-0023</td>
+                            <td><span class="dp-status success">✓ Success</span></td>
+                            <td>Mar 2, 9:00 AM</td>
+                            <td>2m 12s</td>
+                        </tr>
+                        <tr>
+                            <td>#RUN-0022</td>
+                            <td><span class="dp-status failed">✗ Failed</span></td>
+                            <td>Mar 1, 9:00 AM</td>
+                            <td>0m 45s</td>
+                        </tr>
+                        <tr>
+                            <td>#RUN-0021</td>
+                            <td><span class="dp-status success">✓ Success</span></td>
+                            <td>Feb 28, 9:00 AM</td>
+                            <td>3m 08s</td>
+                        </tr>
+                        <tr>
+                            <td>#RUN-0020</td>
+                            <td><span class="dp-status success">✓ Success</span></td>
+                            <td>Feb 27, 9:15 AM</td>
+                            <td>2m 55s</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ CREATE WORKFLOW MODAL ═══ -->
+    <div class="create-modal-overlay" id="createModalOverlay" onclick="closeCreateModal()">
+        <div class="create-modal" onclick="event.stopPropagation()">
+            <div class="cm-header">
+                <div></div><button class="cm-close" onclick="closeCreateModal()">✕</button>
+            </div>
+            <div class="cm-title">What would you like to build?</div>
+            <div class="cm-sub">Describe your ideal workflow in plain English, or upload files, and we'll design it for
+                you.</div>
+            <div class="cm-body">
+                <div class="cm-label">Describe your workflow <span class="req">*</span></div>
+                <textarea class="cm-textarea"
+                    placeholder="Example: When a new lead fills out the Typeform, add them to HubSpot and send a notification to Slack..."></textarea>
+                <div style="text-align:center;color:var(--text-muted);font-size:12px;margin-bottom:12px">(optional)
+                </div>
+                <div class="cm-upload">
+                    <div class="cm-upload-icon">📤</div>
+                    <div class="cm-upload-title">Upload Files</div>
+                    <div class="cm-upload-hint">Drop your files here or click to browse<br>Supports .txt, .md, and .zip
+                        files</div>
+                </div>
+                <div class="cm-actions">
+                    <button class="cm-btn-enhance" onclick="showToast('Prompt enhanced with AI suggestions')">✨ Enhance
+                        Prompt</button>
+                    <button class="cm-btn-generate"
+                        onclick="showToast('Generating your workflow...');setTimeout(()=>closeCreateModal(),1500)">✨
+                        Generate Workflow</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ TOAST NOTIFICATION ═══ -->
+    <div class="toast" id="globalToast">
+        <div class="toast-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"
+                stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        </div><span id="toastMsg">Action completed successfully</span>
+    </div>
+
+    <div class="feedback-tab">Feedback</div>
+
+    <script>
+        // ═══ ALL 67 WORKFLOWS — from live karax.ai/dashboard/workflows (Discover) ═══
+        // Category assignments from Card Sorting Study (8 AI personas, 81% agreement)
+        const ICON_MAP = { gm: '✉', sh: '▦', li: 'in', sf: '☁', w: 'W', gh: '⌥', ge: '◆', yt: '▶', rd: '◉', sl: '⊞', ln: '▷', hb: '⬡', no: '▢' };
+        const CAT_LABELS = { email: '📧 Email', sales: '📊 Sales', research: '🔍 Research', social: '📱 Social', productivity: '💼 Productivity', devops: '🔧 DevOps', finance: '💰 Finance' };
+        const WF = [
+            { t: 'Competitor Intelligence Email Digest', by: 'Sarang Kulkarni', cat: 'research', tags: ['email'], ic: ['gm'], d: 'Monitors competitor news daily and delivers a formatted intelligence digest.' },
+            { t: 'AI Intelligence Report Generator', by: 'Satyam Singh Rajput', cat: 'research', tags: [], ic: ['w', 'gm'], d: 'Deep web searches across AI categories compiled into a formatted email report.' },
+            { t: 'Global Opportunity Scout', by: 'Satyam Singh Rajput', cat: 'sales', tags: ['research'], ic: ['w', 'gm'], d: 'Scans global markets for business opportunities and delivers actionable briefings.' },
+            { t: 'Unread Email Digest with Priority Labels', by: 'Ashish Patel', cat: 'email', tags: [], ic: ['gm'], d: 'Scans unread emails, applies AI priority scoring, sends categorized summary.' },
+            { t: 'LinkedIn ICP Prospecting & Qualification', by: 'Shubhangi Chavan', cat: 'sales', tags: [], ic: ['li', 'sh'], d: 'Searches LinkedIn for ideal customer profiles, qualifies leads, syncs to CRM.' },
+            { t: 'LinkedIn Prospect Analyzer & Outreach', by: 'Sarang Kulkarni', cat: 'sales', tags: ['social'], ic: ['gm', 'w'], d: 'Analyzes prospect profiles, scores engagement potential, prepares outreach drafts.' },
+            { t: 'AI-Powered Tech Research Engine', by: 'Ayanabha Misra', cat: 'research', tags: [], ic: ['ge', 'gm'], d: 'Searches across tech publications and compiles findings into a Google Docs report.' },
+            { t: '[AUTO] Daily Tech Briefing', by: 'Satyam Singh Rajput', cat: 'research', tags: ['productivity'], ic: ['gm'], d: 'Automated daily tech news digest delivered to your inbox every morning.' },
+            { t: 'Audit Keyword Discussion Summary', by: 'Satyam Singh Rajput', cat: 'email', tags: ['research'], ic: ['w'], d: 'Generates keyword discussion summaries from audit conversations.' },
+            { t: 'Email to Linear Issue with Doc Specs', by: 'Satyam Singh Rajput', cat: 'devops', tags: ['email'], ic: ['gm', 'ln'], d: 'Converts email requests into Linear issues with Google Docs specifications.' },
+            { t: 'SaaS Marketing Strategy Generator', by: 'Sai Casula', cat: 'research', tags: ['social'], ic: ['w'], d: 'Creates comprehensive SaaS marketing strategies from your product description.' },
+            { t: 'Live Portfolio Performance Tracker', by: 'Ashish Patel', cat: 'finance', tags: [], ic: ['sh'], d: 'Tracks portfolio performance in real-time using financial APIs and Google Sheets.' },
+            { t: 'Daily Pre-Market Financial Intel', by: 'Ashish Patel', cat: 'finance', tags: ['research'], ic: ['gm'], d: 'Pre-market financial intelligence summary delivered before market opens.' },
+            { t: 'Python GIF Animation Generator', by: 'Deviprasad Shetty', cat: 'devops', tags: [], ic: ['ge'], d: 'Generates GIF animations using Python code via Gemini AI.' },
+            { t: 'Brainstorming Ideas Into Designs', by: 'Deviprasad Shetty', cat: 'devops', tags: [], ic: ['gh'], d: 'Converts brainstorming sessions into design mockups pushed to GitHub.' },
+            { t: 'Linear Prod Ready to Email Notification', by: 'Siddhi Satam', cat: 'devops', tags: ['email'], ic: ['ln', 'gm'], d: 'Sends email notification when Linear issues move to production-ready status.' },
+            { t: 'Morning Productivity Briefing', by: 'Ayanabha Misra', cat: 'productivity', tags: [], ic: ['ln', 'gm'], d: 'Compiles calendar, tasks, and email digest into a single morning briefing.' },
+            { t: 'Linear-TickTick Sync via Google Drive', by: 'Ayanabha Misra', cat: 'productivity', tags: ['devops'], ic: ['gm', 'ln'], d: 'Syncs Linear tasks to TickTick via Google Drive for cross-platform productivity.' },
+            { t: 'AI-Powered GIF Generator', by: 'Deviprasad Shetty', cat: 'devops', tags: [], ic: ['ge'], d: 'Creates animated GIFs from text prompts using AI image generation.' },
+            { t: 'Meeting Action Items to Agenda', by: 'Satyam Singh Rajput', cat: 'productivity', tags: ['email'], ic: ['gm'], d: 'Extracts action items from meeting emails and creates structured agendas.' },
+            { t: 'Smart Workflow Advisor', by: 'Deviprasad Shetty', cat: 'productivity', tags: [], ic: ['gm', 'ln'], d: 'Analyzes your existing workflows and suggests optimizations.' },
+            { t: 'LinkedIn B2B & Affiliate Outreach Agent', by: 'Shubhangi Chavan', cat: 'sales', tags: ['social'], ic: ['li'], d: 'Automates B2B and affiliate outreach campaigns on LinkedIn.' },
+            { t: 'University Research Report Generator', by: 'Satyam Singh Rajput', cat: 'research', tags: [], ic: ['gm', 'w'], d: 'Generates comprehensive research reports on university-level topics.' },
+            { t: 'Newsletter Creator with Ext. Images', by: 'Sarang Kulkarni', cat: 'email', tags: ['social'], ic: ['gm'], d: 'Creates visually rich newsletters with external image integration.' },
+            { t: 'Newsletter Template Creator & Sender', by: 'Sarang Kulkarni', cat: 'email', tags: ['social'], ic: ['gm'], d: 'Designs newsletter templates and sends them via Gmail automation.' },
+            { t: 'Reddit & Quora Weekly Monitor', by: 'Sujata Ravidas', cat: 'social', tags: ['research'], ic: ['rd', 'gm'], d: 'Monitors Reddit and Quora for brand mentions and delivers weekly digest.' },
+            { t: 'AI Trend Reels Auto-Publisher', by: 'Satyam Singh Rajput', cat: 'social', tags: [], ic: ['ge'], d: 'Generates and auto-publishes AI trend reels to social media.' },
+            { t: 'Social Media Post Discovery', by: 'Deviprasad Shetty', cat: 'social', tags: [], ic: ['w'], d: 'Discovers trending social media content ideas for your niche.' },
+            { t: 'Research Topic Deep Dive', by: 'Satyam Singh Rajput', cat: 'research', tags: [], ic: ['gm', 'w'], d: 'Conducts deep research on any topic and compiles findings into reports.' },
+            { t: 'Salesforce Lead Research Dossier', by: 'Satyam Singh Rajput', cat: 'sales', tags: ['research'], ic: ['sf', 'gm'], d: 'Enriches Salesforce leads with web research and generates detailed dossiers.' },
+            { t: 'Tech Trend LinkedIn Post Generator', by: 'Deviprasad Shetty', cat: 'social', tags: [], ic: ['ge'], d: 'Generates LinkedIn posts about the latest tech trends.' },
+            { t: 'Product Testing & Enhancement Report', by: 'Siddhi Satam', cat: 'devops', tags: ['productivity'], ic: ['gm', 'w'], d: 'Automated product testing reports with enhancement recommendations.' },
+            { t: 'Brand Mention & Sentiment Tracker', by: 'Ashish Patel', cat: 'social', tags: ['research'], ic: ['sh', 'rd'], d: 'Tracks brand mentions across social platforms and analyzes sentiment.' },
+            { t: 'Support Ticket Intel Weekly Report', by: 'Ashish Patel', cat: 'email', tags: ['productivity'], ic: ['gm', 'sl'], d: 'Aggregates support ticket intelligence into a weekly email report.' },
+            { t: 'Automated Expense Tracker (Gmail)', by: 'Deviprasad Shetty', cat: 'finance', tags: ['email'], ic: ['gm', 'sh'], d: 'Scans Gmail for receipts, extracts amounts and vendors, logs to Google Sheets.' },
+            { t: 'SDR Lead Qualification & Enrichment', by: 'Deviprasad Shetty', cat: 'sales', tags: [], ic: ['hb', 'sl'], d: 'Qualifies and enriches SDR leads using HubSpot and Slack notifications.' },
+            { t: 'Automated Competitor Intel Weekly', by: 'Deviprasad Shetty', cat: 'research', tags: [], ic: ['no', 'w'], d: 'Weekly automated competitor intelligence report compiled into Notion.' },
+            { t: 'Expense Tracker from Receipts', by: 'Satyam Singh Rajput', cat: 'finance', tags: ['email'], ic: ['gm', 'sh'], d: 'Processes receipt emails and automatically tracks expenses in spreadsheets.' },
+            { t: 'Salesforce Closed Won to Onboarding', by: 'Satyam Singh Rajput', cat: 'sales', tags: [], ic: ['sf', 'gm'], d: 'Triggers onboarding workflow when Salesforce deals move to Closed Won.' },
+            { t: 'YouTube Competitor Monitor', by: 'Satyam Singh Rajput', cat: 'social', tags: ['research'], ic: ['yt', 'sh'], d: 'Monitors competitor YouTube channels and tracks video performance.' },
+            { t: 'Meeting Transcripts to Comic Strip', by: 'Ashish Patel', cat: 'productivity', tags: [], ic: ['ge'], d: 'Converts meeting transcripts into fun, visual comic strip summaries.' },
+            { t: 'AI Cold Email Campaign - 300 Leads', by: 'Ashish Patel', cat: 'sales', tags: ['email'], ic: ['sh', 'gm'], d: 'AI-powered cold email campaigns targeting up to 300 qualified leads.' },
+            { t: 'AI Tools Discovery Report', by: 'Ashish Patel', cat: 'research', tags: [], ic: ['sh'], d: 'Discovers and reports on the latest AI tools across various categories.' },
+            { t: 'Gmail Smart Label Organizer', by: 'Ashish Patel', cat: 'email', tags: [], ic: ['gm'], d: 'Automatically organizes Gmail with smart labels based on content analysis.' },
+            { t: 'Slack/Email to Google Doc Exporter', by: 'Ashish Patel', cat: 'email', tags: ['productivity'], ic: ['sl', 'gm'], d: 'Exports Slack messages and emails into organized Google Docs.' },
+            { t: 'AI Video Production with Slides', by: 'Ashish Patel', cat: 'social', tags: [], ic: ['ge'], d: 'Generates video content from Google Slides using AI production.' },
+            { t: 'Meeting Action Items to Linear', by: 'Siddhi Satam', cat: 'productivity', tags: ['devops'], ic: ['ln'], d: 'Automatically creates Linear issues from meeting action items.' },
+            { t: 'Email Summary to Google Doc', by: 'Ayanabha Misra', cat: 'email', tags: [], ic: ['gm', 'w'], d: 'Summarizes emails and exports key points to organized Google Docs.' },
+            { t: 'Daily Meeting Recap & Action Items', by: 'Ayanabha Misra', cat: 'productivity', tags: [], ic: ['gm', 'w'], d: 'Daily recap of meetings with extracted action items and follow-ups.' },
+            { t: 'Weekly Drive Updates Digest', by: 'Ayanabha Misra', cat: 'email', tags: ['productivity'], ic: ['gm', 'w'], d: 'Weekly digest of Google Drive changes and updates delivered via email.' },
+            { t: 'Sales Intent Lead Capture & Follow-up', by: 'Ayanabha Misra', cat: 'sales', tags: [], ic: ['gm', 'sf'], d: 'Captures sales intent signals and triggers automated follow-up sequences.' },
+            { t: 'Daily Salesforce Deal Briefing', by: 'Ayanabha Misra', cat: 'sales', tags: [], ic: ['sf', 'gm'], d: 'Daily briefing on Salesforce deal pipeline with key metrics and updates.' },
+            { t: 'Email Summary to Google Doc Digest', by: 'Ayanabha Misra', cat: 'email', tags: [], ic: ['gm', 'w'], d: 'Consolidates email summaries into a structured Google Doc digest.' },
+            { t: 'Daily Meeting Recap (Report)', by: 'Ayanabha Misra', cat: 'productivity', tags: [], ic: ['gm', 'w'], d: 'Generates formatted daily meeting recap reports with key takeaways.' },
+            { t: 'Weekly Drive Updates Report', by: 'Ayanabha Misra', cat: 'email', tags: ['productivity'], ic: ['gm', 'w'], d: 'Comprehensive weekly report of all Google Drive file changes.' },
+            { t: 'Daily Deal Briefing Generator', by: 'Ayanabha Misra', cat: 'sales', tags: [], ic: ['sf', 'gm'], d: 'Generates daily sales deal briefings from Salesforce pipeline data.' },
+            { t: 'Social Media Post Gen & Scheduler', by: 'Satyam Singh Rajput', cat: 'social', tags: [], ic: ['w'], d: 'Generates and schedules social media posts across multiple platforms.' },
+            { t: 'Multi-Platform Content Creator', by: 'Satyam Singh Rajput', cat: 'social', tags: [], ic: ['w'], d: 'Creates optimized content for multiple social media platforms simultaneously.' },
+            { t: 'Gmail to Slack Auto-Summary', by: 'Satyam Singh Rajput', cat: 'email', tags: ['productivity'], ic: ['gm', 'sl'], d: 'Automatically summarizes important Gmail messages and posts to Slack.' },
+            { t: 'Reddit Karma Building', by: 'Rohan Boda', cat: 'social', tags: [], ic: ['rd'], d: 'Automates strategic Reddit engagement for organic karma building.' },
+            { t: 'Google Form Lead to CRM Automation', by: 'Ashish Patel', cat: 'sales', tags: [], ic: ['sh', 'hb'], d: 'Routes Google Form submissions to HubSpot CRM with enrichment.' },
+            { t: 'Meeting Summary Email Automation', by: 'Ashish Patel', cat: 'email', tags: ['productivity'], ic: ['gm'], d: 'Automates sending meeting summary emails to all participants.' },
+            { t: 'Email & Linear Issue Summary', by: 'Ayanabha Misra', cat: 'email', tags: ['devops'], ic: ['gm', 'ln'], d: 'Combined summary of emails and Linear issues for cross-team visibility.' },
+            { t: 'AI News Digest Email Automation', by: 'Ashish Patel', cat: 'email', tags: ['research'], ic: ['gm'], d: 'Curates and sends daily AI news digest emails automatically.' },
+            { t: 'Daily Productivity Report Generator', by: 'Ayanabha Misra', cat: 'productivity', tags: [], ic: ['gm', 'ln'], d: 'Generates daily productivity reports from calendar, Linear, and Drive.' },
+            { t: 'Linear Issues to Email Report', by: 'Shubham Gupta', cat: 'devops', tags: ['email'], ic: ['ln', 'gm'], d: 'Compiles Linear issues into formatted email reports for stakeholders.' },
+            { t: 'Morning Productivity Report', by: 'Ayanabha Misra', cat: 'productivity', tags: [], ic: ['ln', 'gm'], d: 'Morning report compiling pending tasks, calendar events, and priorities.' }
+        ];
+
+        // ═══ ICON CLASSES ═══
+        const IC_CLASS = { gm: 'gm', sh: 'sh', li: 'li', sf: 'sf', w: 'w', gh: 'w', ge: 'w', yt: 'w', rd: 'w', sl: 'w', ln: 'w', hb: 'w', no: 'w' };
+
+        // ═══ RENDER CARDS ═══
+        function renderCards(containerId, cat) {
+            const el = document.getElementById(containerId);
+            if (!el) return;
+            const items = cat === 'all' ? WF : WF.filter(w => w.cat === cat || w.tags.includes(cat));
+            // Group by category for visual sections
+            const grouped = {};
+            items.forEach(w => { if (!grouped[w.cat]) grouped[w.cat] = []; grouped[w.cat].push(w); });
+            const order = ['email', 'sales', 'research', 'social', 'productivity', 'devops', 'finance'];
+            let html = '';
+            if (cat === 'all') {
+                // Show category headers
+                order.forEach(c => {
+                    if (!grouped[c] || !grouped[c].length) return;
+                    html += '<div class="cat-header" style="grid-column:1/-1;display:flex;align-items:center;gap:8px;margin:8px 0 2px;padding:6px 0;border-bottom:1.5px solid var(--card-border)"><span style="font-size:14px;font-weight:700">' + CAT_LABELS[c] + '</span><span style="font-size:11px;color:var(--text-muted)">(' + grouped[c].length + ')</span></div>';
+                    grouped[c].forEach(w => { html += cardHTML(w); });
+                });
+            } else {
+                items.forEach(w => { html += cardHTML(w); });
+            }
+            el.innerHTML = html;
+        }
+
+        function cardHTML(w) {
+            const tagBadge = w.tags.length ? ' · ' + w.tags.map(t => CAT_LABELS[t] || t).join(', ') : '';
+            const catBadge = CAT_LABELS[w.cat] || w.cat;
+            return '<div class="dc" data-cat="' + w.cat + '" data-tags="' + w.tags.join(',') + '">' +
+                '<button class="dm">⋯</button>' +
+                '<div class="dc-i">' + w.ic.map(i => '<div class="ti ' + IC_CLASS[i] + '">' + ICON_MAP[i] + '</div>').join('') + '</div>' +
+                '<h4>' + w.t + '</h4>' +
+                '<div class="desc">' + w.d + '</div>' +
+                '<div class="cr">by ' + w.by + ' · ' + catBadge + tagBadge + '</div>' +
+                '<div class="dc-a"><button class="bt-r">Run</button><button class="bt-v">View →</button></div>' +
+                '</div>';
+        }
+
+        // ═══ FILTER ═══
+        function filterCat(el, cat, containerId) {
+            el.parentElement.querySelectorAll('.fc').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            renderCards(containerId, cat);
+        }
+
+        // ═══ SCENARIO SWITCHER ═══
+        function switchScenario(n) {
+            document.querySelectorAll('.sv').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('s' + n).classList.add('active');
+            document.querySelectorAll('.scenario-btn')[n - 1].classList.add('active');
+            const descs = ['First-time visitor with zero workflows. Needs education, guidance, and blueprints to understand what workflows are.', 'Returning user with 3 active workflows. Sees stats, personalized recommendations, and a nudge to expand.', 'Power user with 3+ workflows. Minimal education, focus on new content, stats, and quick access to Discover.'];
+            document.getElementById('scenarioDesc').textContent = descs[n - 1];
+        }
+        function switchTab(el, id) {
+            const parent = el.closest('.main');
+            parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            parent.querySelectorAll('.tv').forEach(v => v.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if (id.startsWith('dsc')) {
+                const num = id.replace('dsc', '');
+                renderCards('dwf' + num, 'all');
+            }
+        }
+        function filterClick(el) {
+            el.parentElement.querySelectorAll('.fc').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        // ═══ DETAIL PANEL ═══
+        function openDetailPanel(title, creator, cat, icons) {
+            document.getElementById('dpTitle').textContent = title;
+            document.getElementById('dpCreatorName').textContent = creator;
+            document.getElementById('dpCreatorAv').textContent = creator.charAt(0);
+            // Find workflow data
+            const wf = WF.find(w => w.t === title);
+            if (wf) {
+                document.getElementById('dpOverviewDesc').textContent = wf.d + ' This workflow helps automate repetitive tasks and saves significant time for teams by running on schedule or on demand.';
+            }
+            // Reset to Overview tab
+            document.querySelectorAll('.dp-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.dp-tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector('.dp-tab').classList.add('active');
+            document.getElementById('dpOverview').classList.add('active');
+            // Open panel
+            document.getElementById('detailOverlay').classList.add('open');
+            document.getElementById('detailPanel').classList.add('open');
+        }
+        function closeDetailPanel() {
+            document.getElementById('detailOverlay').classList.remove('open');
+            document.getElementById('detailPanel').classList.remove('open');
+        }
+        function switchDetailTab(el, tabId) {
+            document.querySelectorAll('.dp-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            document.querySelectorAll('.dp-tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // ═══ DROPDOWN MENUS ═══
+        function toggleCardMenu(cardId) {
+            closeAllMenus();
+            const menu = document.getElementById(cardId + '-menu');
+            if (menu) menu.classList.toggle('show');
+        }
+        function toggleDetailMenu(e) {
+            e.stopPropagation();
+            const dd = document.getElementById('dpMenuDropdown');
+            dd.classList.toggle('show');
+        }
+        function closeAllMenus() {
+            document.querySelectorAll('.card-dropdown, .dropdown-menu').forEach(m => m.classList.remove('show'));
+        }
+
+        // ═══ CREATE WORKFLOW MODAL ═══
+        function openCreateModal() {
+            document.getElementById('createModalOverlay').classList.add('open');
+        }
+        function closeCreateModal() {
+            document.getElementById('createModalOverlay').classList.remove('open');
+        }
+
+        // ═══ TOAST ═══
+        let toastTimer;
+        function showToast(msg) {
+            closeAllMenus();
+            const t = document.getElementById('globalToast');
+            document.getElementById('toastMsg').textContent = msg;
+            t.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+        }
+
+        // ═══ GLOBAL: Close menus on outside click ═══
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.dm') && !e.target.closest('.card-dropdown') && !e.target.closest('.dp-menu-btn')) {
+                closeAllMenus();
+            }
+        });
+
+        // ═══ INIT ═══
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCards('dwf1', 'all');
+            renderCards('dwf2', 'all');
+            renderCards('dwf3', 'all');
+        });
+    </script>
+</body>
+
+</html>
